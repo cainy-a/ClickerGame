@@ -14,11 +14,11 @@ namespace ClickerGame
     public partial class Form1 : Form
     {
 
-        int money = 0;
-        int multiplier = 1;
+        public static int money = 0;
+        public static int multiplier = 1;
         int nextMultiplier = 10;
         int nextMultiplierPrice = 50;
-        int autoClickDelay = 0;
+        public static int autoClicksPerSecond = 0;
         public Form1()
         {
             InitializeComponent();
@@ -68,46 +68,32 @@ namespace ClickerGame
             if (money >= 200)
             {
                 money -= 200;
-                autoClickDelay = 3;
+                autoClicksPerSecond = 3;
             }
         }
 
         private async void Form1_Load(object sender, EventArgs e)
         {
-            /*
-            Thread autoClickerThread = new Thread(AutoClickerThread);
-            autoClickerThread.Start();
-            */
-            // ^^^^^^^^^^^^ Old Code!
-
-            var autoClickerDataReturn = new Progress<string>(s => textBoxMoney.Text = s);
-            await Task.Factory.StartNew(() => SecondThread.AutoClicker(autoClickerDataReturn));
-        }
-
-        /*public void AutoClickerThread()
-        {
-            Thread.Sleep(5000);
-            
-
-            
+            var autoClickerDataReturn = new Progress<int>(s => money = s);
             while (true)
             {
-                if (autoClickDelay != 0)
-                {
-                    Thread.Sleep(autoClickDelay);
-                }
+                await Task.Factory.StartNew(() => SecondThread.AutoClicker(autoClickerDataReturn));
+                UpdateMoneyDisplay(money);
             }
-            
         }
-        */ // old code!
     }
 
     class SecondThread
     {
-        public static void AutoClicker(IProgress<string> newMoneyValue)
+        public static void AutoClicker(IProgress<int> newMoneyValue)
         {
-            Task.Delay(5000).Wait();
-            newMoneyValue.Report("cheese!");
+            while (Form1.autoClicksPerSecond == 0)
+            { }
+            if (Form1.autoClicksPerSecond != 0)
+            {
+                Task.Delay(1 / Form1.autoClicksPerSecond).Wait();
+                newMoneyValue.Report((Form1.money + Form1.multiplier));
+            }
         }
     }
 }
